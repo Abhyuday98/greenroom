@@ -173,7 +173,7 @@ function tierOf(files) {
   }
   return 'code';
 }
-const changedFiles = async () => (await git('status', '--porcelain')).split('\n').filter(Boolean).map((l) => l.slice(3).replace(/^.* -> /, ''));
+const changedFiles = async () => (await run('git', ['status', '--porcelain'], { cwd: PLAYGROUND })).stdout.split('\n').filter((l) => l.trim()).map((l) => l.slice(3).replace(/^.* -> /, '')); // untrimmed: the first line's status letters keep their leading space
 
 // ---------- git: send as a PR, start over, remember what the reviewer decided ----------
 async function sendPR(note, person) {
