@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light">
+<title>{{name}}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23281810'/%3E%3Cpath d='M14 16h36v10H38v24H26V26H14z' fill='%23d8a840'/%3E%3C/svg%3E">
+<style>
+  :root { --wall:#efeee6; --ink:#281810; --soft:#6b5a4e; --mustard:#d8a840; --board:#1c120c; --line:#d8d3c6; --card:#fff; --ok:#1f6b3a; --bad:#9b2c1f; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; -webkit-tap-highlight-color:transparent; overscroll-behavior:none; }
+  body { margin:0; font:16px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--wall); color:var(--ink); display:flex; flex-direction:column; height:100dvh; }
+  header { display:flex; align-items:center; gap:.6rem; padding:.55rem .8rem; background:var(--card); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:1.05rem; margin:0 auto 0 0; }
+  header h1 small { font-weight:400; color:var(--soft); margin-left:.4rem; }
+  .pill { font-size:.78rem; padding:.15rem .6rem; border-radius:99px; background:#ece9df; color:var(--soft); font-weight:600; white-space:nowrap; }
+  .pill.busy { background:#fbecd0; color:#7a4d00; }
+  .pill.ok { background:#e3f1e6; color:var(--ok); }
+  button, .btn, .attach { font:inherit; font-weight:600; min-height:2.5rem; padding:.45rem .9rem; border:1px solid var(--line); border-radius:9px; background:var(--card); color:var(--ink); cursor:pointer; touch-action:manipulation; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; transition:transform 100ms ease-out, border-color 100ms; }
+  button:not(:disabled):active, .btn:active, .attach:active { transform:scale(.96); }
+  @media (hover: hover) and (pointer: fine) { button:not(:disabled):hover, .btn:hover { border-color:var(--ink); } }
+  button:disabled { opacity:.5; cursor:default; }
+  .primary { background:var(--mustard); border-color:var(--mustard); }
+  .danger { color:var(--bad); }
+  main { flex:1; min-height:0; display:grid; grid-template-columns: minmax(20rem, 2fr) 3fr; }
+  #chat { display:flex; flex-direction:column; min-height:0; border-right:1px solid var(--line); }
+  #log { flex:1; overflow:auto; overscroll-behavior:contain; padding:.9rem .9rem 0; -webkit-overflow-scrolling:touch; }
+  .msg { max-width:44rem; margin:0 0 .8rem; padding:.7rem .9rem; border-radius:12px; background:var(--card); border:1px solid var(--line); white-space:pre-wrap; }
+  .msg.me { background:var(--board); color:var(--wall); border-color:var(--board); margin-left:auto; max-width:34rem; }
+  .msg.tool { background:transparent; border:0; color:var(--soft); font-size:.88rem; padding:.1rem .9rem; margin:0 0 .3rem; }
+  .msg.err { background:#f8e4e0; color:var(--bad); border-color:#f0c9c2; }
+  .msg.sys { background:#e3f1e6; color:var(--ok); border-color:#cfe6d4; }
+  .msg a { color:inherit; }
+  form#ask { display:flex; gap:.5rem; padding:.7rem .9rem; border-top:1px solid var(--line); background:var(--card); }
+  form#ask .attach { display:flex; flex-direction:column; align-items:center; justify-content:center; width:3.4rem; min-height:3.2rem; border:1px solid var(--line); border-radius:12px; cursor:pointer; font-size:1.15rem; line-height:1; background:var(--card); gap:.15rem; }
+  form#ask .attach small { font-size:.68rem; font-weight:600; color:var(--soft); }
+  .attached { padding:.3rem .9rem .6rem; background:var(--card); }
+  .ideas { margin:.2rem 0 1rem; }
+  .ideas .hint { margin:0 0 .4rem; }
+  .ideas button { display:block; width:100%; text-align:left; margin:0 0 .4rem; padding:.6rem .9rem; border:1px solid var(--line); border-radius:12px; background:var(--card); font-weight:500; min-height:0; }
+  .bar-actions { display:flex; gap:.5rem; }
+  .quiet { border-color:transparent; background:transparent; color:var(--soft); }
+  @media (hover: hover) and (pointer: fine) { .quiet:not(:disabled):hover { border-color:var(--line); } }
+  .typing { color:var(--soft); font-size:.9rem; padding:.2rem .9rem; }
+  .typing::after { content:'…'; animation: dots 1.2s steps(4,end) infinite; }
+  @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+  form#ask textarea { flex:1; min-width:0; font:inherit; font-size:17px; padding:.75rem .85rem; border:1px solid var(--line); border-radius:12px; resize:none; min-height:3.2rem; max-height:9rem; line-height:1.35; }
+  form#ask textarea:focus { border-color:var(--ink); outline:none; }
+  form#ask button.primary { min-height:3.2rem; padding:.5rem 1.2rem; border-radius:12px; }
+  .bar { display:flex; gap:.5rem; padding:.6rem .9rem calc(.6rem + env(safe-area-inset-bottom, 0px)); border-top:1px solid var(--line); background:var(--card); flex-wrap:wrap; align-items:center; }
+  .bar .changes { color:var(--soft); font-size:.88rem; margin-right:auto; flex:1 1 14rem; }
+  #preview { display:flex; flex-direction:column; min-height:0; background:#fff; }
+  #preview .tools { display:flex; gap:.5rem; padding:.45rem .7rem; border-bottom:1px solid var(--line); align-items:center; }
+  #preview .tools span { color:var(--soft); font-size:.88rem; margin-right:auto; }
+  #preview iframe { flex:1; border:0; width:100%; min-height:0; background:#fff; margin-bottom:env(safe-area-inset-bottom, 0px); }
+  .tabs { display:none; }
+  dialog { border:0; border-radius:14px; padding:1.2rem; max-width:26rem; width:calc(100% - 2rem); font:inherit; }
+  dialog::backdrop { background:rgba(40,24,16,.5); }
+  dialog input { width:100%; font:inherit; font-size:16px; padding:.6rem .7rem; border:1px solid var(--line); border-radius:9px; margin:.5rem 0 1rem; }
+  dialog .row { display:flex; gap:.5rem; justify-content:flex-end; }
+  .hint { color:var(--soft); font-size:.9rem; }
+  @media (max-width: 860px) {
+    .bar { flex-direction:column; align-items:stretch; gap:.4rem; }
+    .bar .changes { flex:none; margin:0; }
+    .bar-actions button { flex:1; }
+    form#ask { padding:.6rem .7rem; }
+    form#ask button.primary { padding:.5rem .9rem; }
+    #preview .tools span { display:none; }
+    #preview .tools { justify-content:space-between; }
+    #preview .tools button, #preview .tools .btn { flex:1; text-align:center; justify-content:center; }
+    main { grid-template-columns: 1fr; }
+    #chat, #preview { display:none; border-right:0; }
+    body[data-tab="chat"] #chat, body[data-tab="preview"] #preview { display:flex; }
+    .tabs { display:flex; gap:.3rem; }
+    .tabs button { min-height:2.2rem; padding:.3rem .8rem; }
+    .tabs button[aria-pressed="true"] { background:var(--ink); color:var(--wall); border-color:var(--ink); }
+  }
+</style>
+</head>
+<body data-tab="chat">
+<header>
+  <h1>{{name}} <small id="hello"></small></h1>
+  <span class="pill" id="status">connecting</span>
+  <div class="tabs"><button data-tab="chat" aria-pressed="true">Chat</button><button data-tab="preview">Preview</button></div>
+</header>
+
+<main>
+  <section id="chat" aria-label="Chat">
+    <div id="log">
+      <div class="msg">Hello. Tell me what to change on the site and I'll do it. You can watch it in the preview. When you're happy, press <b>Send to <span class="owner"></span></b>, who checks it and puts it live.</div>
+      <div class="ideas" id="ideas">
+        <p class="hint">Some things you could say:</p>
+        <button type="button">Make the headline on the home page bigger</button>
+        <button type="button">Change the accent colour to a deeper gold</button>
+        <button type="button">Add an event on Friday at 7pm called…</button>
+        <button type="button">Put this photo on the about page</button>
+        <button type="button">Rewrite the introduction to sound warmer</button>
+      </div>
+    </div>
+    <form id="ask">
+      <label class="attach" title="Add a photo"><input type="file" id="photo" accept="image/*" hidden><span aria-hidden="true">📷</span><small>Photo</small></label>
+      <textarea id="text" placeholder="What should change?" rows="1" required aria-label="What should change?" enterkeyhint="send" autocapitalize="sentences"></textarea>
+      <button class="primary" id="go">Send</button>
+    </form>
+    <div class="hint attached" id="attached" hidden></div>
+    <div class="bar" id="bar">
+      <span class="changes" id="changes">Nothing changed yet. Changes stay here until you send them.</span>
+      <span class="bar-actions">
+        <button id="reset" class="quiet" disabled>Start over</button>
+        <button id="send" class="primary" disabled>Send to <span class="owner"></span></button>
+      </span>
+    </div>
+  </section>
+
+  <section id="preview" aria-label="Preview">
+    <div class="tools">
+      <span id="previewState">Live preview of your changes</span>
+      <button id="refresh">Refresh</button>
+      <button id="full">Full screen</button>
+      <a class="btn" id="open" href="#" target="_blank" rel="noopener">New tab ↗</a>
+    </div>
+    <iframe id="frame" title="Preview of the site" src="about:blank"></iframe>
+  </section>
+</main>
+
+<dialog id="sendDialog">
+  <h2 style="margin:0 0 .3rem;font-size:1.15rem">Send to <span class="owner"></span></h2>
+  <p class="hint">One line saying what you changed, so he knows what to look at.</p>
+  <form method="dialog" id="sendForm">
+    <input id="note" placeholder="e.g. New headline and a warmer yellow on the buttons" maxlength="72" autocomplete="off">
+    <div class="row"><button type="button" id="cancelSend">Not yet</button><button class="primary" id="confirmSend">Send it</button></div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const log = $('#log'), text = $('#text'), go = $('#go'), status = $('#status'), frame = $('#frame');
+  let previewUrl = '', busy = false, ownerName = '';
+
+  const add = (cls, html) => { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const setBusy = (b, label) => { busy = b; go.disabled = b; $('#send').disabled = b || !hasChanges; $('#reset').disabled = b || !hasChanges; status.textContent = label || (b ? 'working' : 'ready'); status.className = 'pill ' + (b ? 'busy' : 'ok'); };
+  let hasChanges = false;
+
+  async function refreshState() {
+    try {
+      const s = await (await fetch('/api/state')).json();
+      $('#hello').textContent = 'for ' + s.name;
+      ownerName = s.owner; document.querySelectorAll('.owner').forEach((e) => (e.textContent = s.owner));
+      previewUrl = s.preview === '/' ? '/?preview' : s.preview; $('#open').href = previewUrl;
+      if (frame.src === 'about:blank' && s.previewUp) frame.src = previewUrl;
+      $('#previewState').textContent = s.previewUp ? 'Live preview of your changes' : 'Preview is starting up…';
+      hasChanges = s.files.length > 0;
+      $('#changes').textContent = hasChanges ? `${s.files.length} change${s.files.length === 1 ? '' : 's'} waiting to be sent${s.tier ? ` (${s.tier})` : ''}.` : 'Nothing changed yet. Changes stay here until you send them.';
+      $('#reset').style.display = hasChanges ? '' : 'none';
+      if (!busy) setBusy(s.busy, s.busy ? 'working' : 'ready');
+    } catch { status.textContent = 'offline'; status.className = 'pill'; }
+  }
+
+  let attached = [];
+  document.querySelectorAll('#ideas button').forEach((b) => b.addEventListener('click', () => { text.value = b.textContent.replace(/…$/, ' '); autosize(); text.focus(); text.setSelectionRange(text.value.length, text.value.length); }));
+  let typing = null;
+  const showTyping = (on) => { if (on && !typing) { typing = document.createElement('div'); typing.className = 'typing'; typing.textContent = 'Working on it'; log.appendChild(typing); log.scrollTop = log.scrollHeight; } if (!on && typing) { typing.remove(); typing = null; } };
+  $('#photo').addEventListener('change', async () => {
+    const f = $('#photo').files[0]; if (!f) return;
+    $('#attached').hidden = false; $('#attached').textContent = 'Uploading ' + f.name + '…';
+    try {
+      const r = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': f.type || 'image/jpeg', 'X-Filename': f.name }, body: f });
+      const j = await r.json();
+      if (j.path) { attached.push(j.path); $('#attached').textContent = 'Attached: ' + attached.map((p) => p.split('/').pop()).join(', ') + '. Now say where it should go.'; }
+      else $('#attached').textContent = j.error || 'Could not upload that.';
+    } catch { $('#attached').textContent = 'Could not upload that.'; }
+    $('#photo').value = '';
+  });
+
+  $('#ask').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let t = text.value.trim(); if (!t || busy) return;
+    $('#ideas')?.remove();
+    add('me', esc(t) + (attached.length ? ' 📷' : '')); text.value = ''; autosize(); showTyping(true);
+    if (attached.length) { t += `\n\n(Photos I attached, already saved in the site: ${attached.join(', ')})`; attached = []; $('#attached').hidden = true; }
+    setBusy(true, 'thinking');
+    let current = null;
+    try {
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: t }) });
+      if (!r.ok) { const j = await r.json().catch(() => ({})); add('err', esc(j.error || 'That did not work.')); setBusy(false); return; }
+      const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
+      while (true) {
+        const { value, done } = await reader.read(); if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i; while ((i = buf.indexOf('\n\n')) >= 0) {
+          const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+          if (!chunk.startsWith('data: ')) continue;
+          const ev = JSON.parse(chunk.slice(6));
+          if (ev.type === 'text') { showTyping(false); current = add('', esc(ev.text)); showTyping(true); }
+          else if (ev.type === 'tool') { showTyping(false); add('tool', esc(ev.text)); showTyping(true); status.textContent = ev.text.toLowerCase(); }
+          else if (ev.type === 'error') { showTyping(false); add('err', esc(ev.text)); }
+          else if (ev.type === 'done') { showTyping(false); frame.contentWindow?.location.reload(); }
+        }
+      }
+    } catch (err) { add('err', 'Lost the connection. Try again.'); }
+    showTyping(false); setBusy(false); refreshState();
+  });
+
+  const autosize = () => { text.style.height = 'auto'; text.style.height = Math.min(text.scrollHeight, 128) + 'px'; };
+  text.addEventListener('input', autosize);
+  text.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); $('#ask').requestSubmit(); } });
+
+  $('#send').addEventListener('click', () => $('#sendDialog').showModal());
+  $('#cancelSend').addEventListener('click', () => $('#sendDialog').close());
+  $('#sendForm').addEventListener('submit', async () => {
+    setBusy(true, 'sending');
+    const r = await fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: $('#note').value }) });
+    const j = await r.json();
+    if (j.url) add('sys', `Sent. ${esc(j.title)} is with <span class="owner">${esc(ownerName)}</span> now: <a href="${j.url}" target="_blank" rel="noopener">see it</a>.${j.autoMerge ? ' It is a small change, so it goes live by itself once the checks pass.' : ''} The playground is fresh again for the next idea.`);
+    else add('err', esc(j.error || 'Could not send.'));
+    $('#note').value = ''; setBusy(false); refreshState();
+  });
+  $('#reset').addEventListener('click', async () => {
+    if (!confirm('Throw away everything changed since the last send?')) return;
+    setBusy(true, 'resetting');
+    await fetch('/api/reset', { method: 'POST' });
+    add('sys', 'Back to how the live site is. Fresh start.');
+    setBusy(false); refreshState(); frame.contentWindow?.location.reload();
+  });
+  $('#refresh').addEventListener('click', async () => {
+    if (frame.src === 'about:blank') { await refreshState(); return; }
+    try { frame.contentWindow.location.reload(); } catch { frame.src = previewUrl; }
+  });
+  $('#full').addEventListener('click', () => { const el = $('#preview'); (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el); });
+  document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
+    document.body.dataset.tab = b.dataset.tab;
+    document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    if (b.dataset.tab === 'preview' && frame.src === 'about:blank' && previewUrl) frame.src = previewUrl;
+  }));
+
+  refreshState(); setInterval(refreshState, 15000);
+})();
+</script>
+</body>
+</html>

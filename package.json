@@ -1,0 +1,10 @@
+{
+  "name": "greenroom",
+  "version": "0.1.0",
+  "description": "A chat window into your codebase for someone who does not code: Claude Code in a sandboxed worktree, live preview, PR hand-off.",
+  "type": "module",
+  "bin": { "greenroom": "server.mjs" },
+  "engines": { "node": ">=22" },
+  "license": "MIT",
+  "repository": "github:Abhyuday98/greenroom"
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=greenroom (chat + live preview for a site owner, on the tailnet)
+After=network-online.target tailscaled.service
+
+[Service]
+WorkingDirectory=/home/you/greenroom
+ExecStart=/usr/bin/node /home/you/greenroom/server.mjs /home/you/greenroom/greenroom.config.json
+Environment=PATH=/home/you/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HOME=/home/you
+# Environment=ANTHROPIC_API_KEY=...   pay-per-use instead of the machine's Claude login (recommended when other people use it)
+# Environment=MOONSHOT_API_KEY=...    for the kimi provider
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
