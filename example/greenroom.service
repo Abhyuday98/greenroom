@@ -9,6 +9,7 @@ Environment=PATH=/home/you/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
 Environment=HOME=/home/you
 # Environment=ANTHROPIC_API_KEY=...   pay-per-use instead of the machine's Claude login (recommended when other people use it)
 # Environment=MOONSHOT_API_KEY=...    for the kimi provider
+EnvironmentFile=-%h/.config/greenroom.env   # or keep keys in a file: OPENROUTER_API_KEY=..., MOONSHOT_API_KEY=...
 Restart=always
 RestartSec=3
 
