@@ -42,7 +42,7 @@ Claude Code can talk to any endpoint that speaks the Anthropic message format. `
 "kimi":  { "model": "kimi-k2-0905-preview", "baseUrl": "https://api.moonshot.ai/anthropic", "tokenEnv": "MOONSHOT_API_KEY", "bare": true }
 ```
 
-OpenRouter also speaks the Anthropic format, at `https://openrouter.ai/api`, so every open model it hosts is one entry away: GLM 4.6, Kimi K2, DeepSeek, the 480B Qwen3-Coder. Set `OPENROUTER_API_KEY` in the service environment and pick the model id from their catalogue. These are the big versions of the models I could not run locally, billed per token, no subscription. OpenRouter also lists models with a `:free` suffix that cost nothing: rate-limited (50 requests a day until you have put $10 of credit on the account, then 1,000), served by providers who may keep your prompts, and the list changes week to week. An agent turn is several requests, so the free limit covers a handful of changes a day. Filter their model list for `:free` and `tools`; a free model without tool support cannot drive Claude Code.
+OpenRouter also speaks the Anthropic format, at `https://openrouter.ai/api`, so every open model it hosts is one entry away: GLM 4.6, Kimi K2, DeepSeek, the 480B Qwen3-Coder. Set `OPENROUTER_API_KEY` in the service environment and pick the model id from their catalogue. These are the big versions of the models I could not run locally, billed per token. OpenRouter also lists models with a `:free` suffix that cost nothing: rate-limited (50 requests a day until you have put $10 of credit on the account, then 1,000), served by providers who may keep your prompts, and the list changes week to week. An agent turn is several requests, so the free limit covers a handful of changes a day. Filter their model list for `:free` and `tools`; a free model without tool support cannot drive Claude Code.
 
 `bare` runs Claude Code with `--bare` and a named tool set and swaps in `PROMPT.bare.md`, a short prompt with a map of the project. I needed this because the small models replied to Claude Code's own boilerplate (the list of agents and skills it prepends) instead of to the request.
 
@@ -50,7 +50,7 @@ What I measured, same request each time, "change the home page headline to X, no
 
 | Model | Route | What happened | Time |
 | --- | --- | --- | --- |
-| Claude Opus | subscription | changed the headline; also updated the test that checked the old one | 40 s |
+| Claude Opus | Anthropic API | changed the headline; also updated the test that checked the old one | 40 s |
 | Kimi K2 | OpenRouter, paid | changed the headline | 27 s |
 | GLM 4.6 | OpenRouter, paid | read the design guide first, then changed the headline | 37 s |
 | Qwen3-Coder 480B | OpenRouter, paid | overrode the headline with a database migration instead of editing the copy file; valid in this project, and it followed the migration numbering | 141 s |
@@ -66,7 +66,7 @@ Three things I took from this. The hosted open models are usable: Kimi K2 and GL
 
 ## Setup
 
-You need Node 22 or newer, git, the GitHub CLI signed in, Claude Code installed and signed in (or an `ANTHROPIC_API_KEY`), and a project with a dev server.
+You need Node 22 or newer, git, the GitHub CLI signed in, Claude Code installed, an API key for whichever model you pick (`ANTHROPIC_API_KEY` for Claude, `OPENROUTER_API_KEY` for the open models, nothing for Ollama), and a project with a dev server.
 
 ```sh
 git clone https://github.com/Abhyuday98/greenroom && cd greenroom
@@ -82,9 +82,9 @@ sudo tailscale serve --bg --https=8443 http://127.0.0.1:4400
 
 `example/greenroom.service` is a systemd user unit; enable linger so it survives logout. Add each person's login to `allowed.txt`, one per line. No restart needed.
 
-## About the Claude subscription
+## Keys
 
-If Claude Code on the machine is signed in with a personal subscription, that subscription is licensed to the account holder. When other people use your greenroom, run it on an API key (`ANTHROPIC_API_KEY` in the service file) or on a local model.
+greenroom itself has no account with anyone. Claude Code reads the key for the chosen brain from the service environment: `ANTHROPIC_API_KEY` for Claude models, `OPENROUTER_API_KEY` or `MOONSHOT_API_KEY` for the hosted open models, and none at all for a local Ollama model. Put them in the env file the service unit points at, not in the repo, and the bill for other people's changes lands on a key you can cap and rotate.
 
 ## Files
 
