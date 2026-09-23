@@ -51,8 +51,9 @@ What I measured, same machine (an RTX A2000 with 12 GB), same request, "change t
 | Claude Opus | changed the headline, updated the test that checked it | about 40 s |
 | Qwen 3.6 35B-A3B through Ollama | changed the headline and ran the build, but put the words "nothing else" into the headline | about 140 s |
 | Qwen 3.5 9B through Ollama | opened the right file, then described the change instead of making it | about 30 s |
+| Qwen3-Coder 30B-A3B through Ollama | opened the right file, then summarised it instead of editing, twice in a row | about 35 s once loaded |
 
-So a local model works for wording and colour changes if the person looks at the preview before sending. For layout or multi-file changes I keep it on Claude.
+I expected the coder model to do best and it did worst. My reading is that after the first tool result comes back, the smaller models treat the file as the topic and forget the instruction; the 35B general model held on to it. So a local model works for wording and colour changes if the person looks at the preview before sending, and which local model matters more than its label suggests. For layout or multi-file changes I keep it on Claude.
 
 ## Setup
 
