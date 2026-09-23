@@ -42,7 +42,7 @@ Claude Code can talk to any endpoint that speaks the Anthropic message format. `
 "kimi":  { "model": "kimi-k2-0905-preview", "baseUrl": "https://api.moonshot.ai/anthropic", "tokenEnv": "MOONSHOT_API_KEY", "bare": true }
 ```
 
-OpenRouter also speaks the Anthropic format, at `https://openrouter.ai/api`, so every open model it hosts is one entry away: GLM 4.6, Kimi K2, DeepSeek, the 480B Qwen3-Coder. Set `OPENROUTER_API_KEY` in the service environment and pick the model id from their catalogue. These are the big versions of the models I could not run locally, billed per token, no subscription.
+OpenRouter also speaks the Anthropic format, at `https://openrouter.ai/api`, so every open model it hosts is one entry away: GLM 4.6, Kimi K2, DeepSeek, the 480B Qwen3-Coder. Set `OPENROUTER_API_KEY` in the service environment and pick the model id from their catalogue. These are the big versions of the models I could not run locally, billed per token, no subscription. OpenRouter also lists models with a `:free` suffix that cost nothing: rate-limited (50 requests a day until you have put $10 of credit on the account, then 1,000), served by providers who may keep your prompts, and the list changes week to week. An agent turn is several requests, so the free limit covers a handful of changes a day. Filter their model list for `:free` and `tools`; a free model without tool support cannot drive Claude Code.
 
 `bare` runs Claude Code with `--bare` and a named tool set and swaps in `PROMPT.bare.md`, a short prompt with a map of the project. I needed this because the small models replied to Claude Code's own boilerplate (the list of agents and skills it prepends) instead of to the request.
 
