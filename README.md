@@ -46,16 +46,23 @@ OpenRouter also speaks the Anthropic format, at `https://openrouter.ai/api`, so 
 
 `bare` runs Claude Code with `--bare` and a named tool set and swaps in `PROMPT.bare.md`, a short prompt with a map of the project. I needed this because the small models replied to Claude Code's own boilerplate (the list of agents and skills it prepends) instead of to the request.
 
-What I measured, same machine (an RTX A2000 with 12 GB), same request, "change the home page headline to X, nothing else":
+What I measured, same request each time, "change the home page headline to X, nothing else", through the studio into the same repo. Local runs are on an RTX A2000 with 12 GB; the rest went through OpenRouter and cost $0.53 in total.
 
-| Model | What happened | Time |
-| --- | --- | --- |
-| Claude Opus | changed the headline, updated the test that checked it | about 40 s |
-| Qwen 3.6 35B-A3B through Ollama | changed the headline and ran the build, but put the words "nothing else" into the headline | about 140 s |
-| Qwen 3.5 9B through Ollama | opened the right file, then described the change instead of making it | about 30 s |
-| Qwen3-Coder 30B-A3B through Ollama | opened the right file, then summarised it instead of editing, twice in a row | about 35 s once loaded |
+| Model | Route | What happened | Time |
+| --- | --- | --- | --- |
+| Claude Opus | subscription | changed the headline; also updated the test that checked the old one | 40 s |
+| Kimi K2 | OpenRouter, paid | changed the headline | 27 s |
+| GLM 4.6 | OpenRouter, paid | read the design guide first, then changed the headline | 37 s |
+| Qwen3-Coder 480B | OpenRouter, paid | overrode the headline with a database migration instead of editing the copy file; valid in this project, and it followed the migration numbering | 141 s |
+| Nemotron 3 Super 120B | OpenRouter, free | same migration route as above, correct | 48 s |
+| DeepSeek V3.2 | OpenRouter, paid | wrote a migration against a table that does not exist; still running when I stopped it at 7 minutes | over 420 s |
+| Nemotron 3 Ultra 550B | OpenRouter, free | the provider returned a malformed response; never got going | failed |
+| Qwen 3.8 27B | OpenRouter, free | rate-limited by the provider before the first reply | failed |
+| Qwen 3.6 35B-A3B | local, Ollama | changed the headline and ran the build, but put the words "nothing else" into the headline | 140 s |
+| Qwen3-Coder 30B-A3B | local, Ollama | opened the right file, then summarised it instead of editing, twice | 35 s |
+| Qwen 3.5 9B | local, Ollama | opened the right file, then described the change instead of making it | 30 s |
 
-I expected the coder model to do best and it did worst. My reading is that after the first tool result comes back, the smaller models treat the file as the topic and forget the instruction; the 35B general model held on to it. So a local model works for wording and colour changes if the person looks at the preview before sending, and which local model matters more than its label suggests. For layout or multi-file changes I keep it on Claude.
+Three things I took from this. The hosted open models are usable: Kimi K2 and GLM 4.6 did the job faster than Opus and for a fraction of a cent, and a free 120B model got there too. The local models on a 12 GB card are not there yet for an instruction given by someone who does not code; the one that edited misread the instruction, and the two others lost the goal as soon as the first file came back. And only Opus noticed that the old headline was asserted in a test and fixed that as well, which is the kind of judgement you pay for on anything bigger than a one-line change.
 
 ## Setup
 
