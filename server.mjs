@@ -198,6 +198,7 @@ async function sendPR(note, person) {
   await run('gh', ['label', 'create', `studio:${tier}`, '--force', '--color', { words: '0E8A16', content: 'FBCA04', design: 'D93F0B', code: 'B60205' }[tier], '--description', `greenroom change tier: ${tier}`], { cwd: PLAYGROUND }).catch(() => {});
   const { stdout } = await run('gh', ['pr', 'create', '--base', cfg.baseBranch, '--head', branch, '--title', title, '--body', body, '--label', `studio:${tier}`], { cwd: PLAYGROUND });
   const url = stdout.trim().split('\n').pop();
+  log(`sent ${url} [${tier}] by ${person.login}: ${files.length} file${files.length === 1 ? '' : 's'}`);
   let autoMerge = false;
   if (cfg.policy.autoMerge && cfg.policy.autoMergeTiers.includes(tier)) {
     try { await run('gh', ['pr', 'merge', '--auto', '--squash', url], { cwd: PLAYGROUND }); autoMerge = true; } catch (e) { log('auto-merge not enabled on the repo:', e.message.split('\n')[0]); }
