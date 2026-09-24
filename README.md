@@ -8,6 +8,10 @@ I built it for someone who is not technical. Their website runs on the free tier
 
 The story of building it, with the measurements and the two times the model got creative: [I gave someone who doesn't code a chat window into my repo](https://medium.com/@abhyudaysamadder/i-gave-someone-who-doesnt-code-a-chat-window-into-my-repo-dad666162994).
 
+[![Four and a half minutes: what they see, then what happens underneath. Click to play.](docs/demo-poster.jpg)](docs/demo.mp4)
+
+*Four and a half minutes: what the person sees, then the same request from a terminal on my machine. Click the picture to play; subtitles are in [docs/demo.srt](docs/demo.srt).*
+
 ## What happens when they send a message
 
 1. The message goes to `claude -p`, Claude Code in one-shot mode, running inside a git worktree of your repo on its own branch. That worktree is the sandbox: its own dependencies, its own local data, and a tool list that allows reading, editing, running the build and the tests, and nothing else. No commit, no push, no deploy, no network, no secrets.

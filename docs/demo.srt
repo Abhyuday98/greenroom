@@ -1,0 +1,188 @@
+1
+00:00:00,900 --> 00:00:05,892
+This is greenroom. A chat window into a code repository, for someone who does not code. This
+
+2
+00:00:05,892 --> 00:00:10,884
+film shows what they see, and then what happens underneath.
+
+3
+00:00:12,784 --> 00:00:17,579
+I built a website for someone who is not technical. Every small change still came back to me.
+
+4
+00:00:17,579 --> 00:00:22,373
+Make the headline bigger. Change the opening hours. Each one was five minutes of my time and
+
+5
+00:00:22,373 --> 00:00:27,168
+a day of theirs waiting. I wanted them to make the change themselves, see it, and hand it to
+
+6
+00:00:27,168 --> 00:00:31,963
+me for a quick look before it went live.
+
+7
+00:00:33,863 --> 00:00:38,919
+This is what they see. A chat on the left, a live preview of their site on the right. A few
+
+8
+00:00:38,919 --> 00:00:43,975
+suggestions of things to say, written for this site. Nothing to install and no password. Their
+
+9
+00:00:43,975 --> 00:00:49,031
+phone is on a private network, and that is the login.
+
+10
+00:00:50,531 --> 00:00:55,203
+They tap a suggestion and press Send. Underneath, Claude Code is now working inside a private
+
+11
+00:00:55,203 --> 00:00:59,875
+copy of the site. The short lines in the chat are its actions: looking at a file, changing it,
+
+12
+00:00:59,875 --> 00:01:04,547
+checking the site still builds.
+
+13
+00:01:07,047 --> 00:01:12,657
+Half a minute later it replies in plain words. The preview on the right already shows the new
+
+14
+00:01:12,657 --> 00:01:18,268
+opening hours. Nothing has gone live. The change exists only in the private copy.
+
+15
+00:01:18,968 --> 00:01:23,263
+When they are happy, they press Send to Alex. Alex is me, the person who looks after the site.
+
+16
+00:01:23,263 --> 00:01:27,558
+They can add a note. What comes out the other end is a pull request, and the playground resets
+
+17
+00:01:27,558 --> 00:01:31,853
+for the next idea.
+
+18
+00:01:38,253 --> 00:01:44,152
+Here is the whole thing on one page. The phone reaches my machine over Tailscale. greenroom
+
+19
+00:01:44,152 --> 00:01:50,051
+is one Node file with no dependencies. It runs Claude Code in one-shot mode inside a git worktree
+
+20
+00:01:50,051 --> 00:01:55,949
+of the repo, with a tool list that allows reading, editing and building, and nothing else. The
+
+21
+00:01:55,949 --> 00:02:01,848
+preview is the normal dev server. Send pushes a branch and opens the pull request.
+
+22
+00:02:03,972 --> 00:02:09,455
+Now the same request from underneath, in a terminal on my machine. greenroom runs as a user
+
+23
+00:02:09,455 --> 00:02:14,937
+service. Inside it, one node process and the dev server for the preview.
+
+24
+00:02:17,232 --> 00:02:21,733
+The service log shows the turn. Who asked, which model answered, and how long it took. Then
+
+25
+00:02:21,733 --> 00:02:26,235
+the send: a branch pushed and a pull request opened.
+
+26
+00:02:28,475 --> 00:02:33,723
+The private copy is a git worktree. Same repository, its own branch, its own installed dependencies.
+
+27
+00:02:33,723 --> 00:02:38,971
+Claude Code never touches the checkout I work in.
+
+28
+00:02:42,969 --> 00:02:47,598
+The pull request carries the request in the person's own words, the files that changed, and
+
+29
+00:02:47,598 --> 00:02:52,228
+a label for the review tier. This one touched only the copy file, so it is words. I read it
+
+30
+00:02:52,228 --> 00:02:56,857
+on my phone and merge it, or not.
+
+31
+00:02:59,320 --> 00:03:04,276
+Every send is also written to a decisions file with the request, the files and the tier. When
+
+32
+00:03:04,276 --> 00:03:09,233
+I merge or close the pull request, greenroom records that too. In time that file trains a small
+
+33
+00:03:09,233 --> 00:03:14,189
+model to predict which changes need a look.
+
+34
+00:03:15,850 --> 00:03:19,370
+Every turn logs its tokens and its cost, per person. So I know what each user is spending, and
+
+35
+00:03:19,370 --> 00:03:22,890
+on which session.
+
+36
+00:03:25,094 --> 00:03:30,214
+The tiers come from the files a change touched. Words for copy and images, content for data,
+
+37
+00:03:30,214 --> 00:03:35,334
+design for styles and pages, code for anything else. Words can be set to merge on its own once
+
+38
+00:03:35,334 --> 00:03:40,454
+the checks pass. I keep that off for now.
+
+39
+00:03:42,749 --> 00:03:47,656
+Which model answers is one word in a file, read on every message. Claude, or any open model
+
+40
+00:03:47,656 --> 00:03:52,562
+that speaks the same format, hosted or running on this machine. And the allow list is a text
+
+41
+00:03:52,562 --> 00:03:57,469
+file of logins, one per line.
+
+42
+00:04:02,148 --> 00:04:06,809
+I measured eleven models on the same request. The hosted open models did the job in under a
+
+43
+00:04:06,809 --> 00:04:11,471
+minute for a fraction of a cent. The local models that fit a twelve gigabyte card are not there
+
+44
+00:04:11,471 --> 00:04:16,132
+yet. The sandbox and the pull request are the same whichever one is running. What changes is
+
+45
+00:04:16,132 --> 00:04:20,793
+judgement.
+
+46
+00:04:22,793 --> 00:04:27,391
+That is greenroom. One file, a private network, a worktree, and a pull request. The code and
+
+47
+00:04:27,391 --> 00:04:31,988
+the write-up are linked below. Thanks for watching.
+
