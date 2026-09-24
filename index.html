@@ -139,6 +139,7 @@
 
   const add = (cls, html) => { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|\n)[-*] /g, '$1• '); // the little markdown Claude cannot help using
   const setBusy = (b, label) => { busy = b; go.disabled = b; $('#send').disabled = b || !hasChanges; $('#reset').disabled = b || !hasChanges; status.textContent = label || (b ? 'working' : 'ready'); status.className = 'pill ' + (b ? 'busy' : 'ok'); };
   let hasChanges = false;
 
@@ -192,7 +193,7 @@
           const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
           if (!chunk.startsWith('data: ')) continue;
           const ev = JSON.parse(chunk.slice(6));
-          if (ev.type === 'text') { showTyping(false); current = add('', esc(ev.text)); showTyping(true); }
+          if (ev.type === 'text') { showTyping(false); current = add('', md(ev.text)); showTyping(true); }
           else if (ev.type === 'tool') { showTyping(false); add('tool', esc(ev.text)); showTyping(true); status.textContent = ev.text.toLowerCase(); }
           else if (ev.type === 'error') { showTyping(false); add('err', esc(ev.text)); }
           else if (ev.type === 'done') { showTyping(false); frame.contentWindow?.location.reload(); }
