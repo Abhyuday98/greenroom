@@ -16,7 +16,7 @@ const home = (p) => p.replace(/^~/, os.homedir());
 const STATE = path.join(os.homedir(), '.config/greenroom-notify.state.json');
 let state = { seen: {}, lastSummary: '' };
 try { state = { ...state, ...JSON.parse(fs.readFileSync(STATE, 'utf8')) }; } catch {}
-const save = () => fs.writeFileSync(STATE, JSON.stringify(state));
+const save = () => fs.writeFileSync(STATE, JSON.stringify(state), { mode: 0o600 });
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
 const rows = (file) => { try { return fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)); } catch { return []; } };
@@ -75,8 +75,6 @@ if (process.argv.includes('--dry')) { // no WhatsApp: print what would be sent
 const client = new Client({
   authStrategy: new LocalAuth({ dataPath: path.join(os.homedir(), '.config/greenroom-notify') }),
   puppeteer: { executablePath: cfg.chrome || '/usr/bin/google-chrome', headless: true, args: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'] },
-  // pin the WhatsApp Web build the library was tested against; a newer one reloads mid-injection ("Execution context was destroyed")
-  webVersionCache: { type: 'remote', remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1048347649-alpha.html' },
 });
 client.on('qr', async (qr) => { console.log('\nScan this with WhatsApp > Linked devices > Link a device:\n'); qrcode.generate(qr, { small: true }); try { const QR = (await import('qrcode')).default; await QR.toFile(path.join(os.homedir(), '.config/greenroom-notify/qr.png'), qr, { width: 480 }); } catch {} });
 client.on('authenticated', () => log('authenticated'));
@@ -84,7 +82,10 @@ client.on('auth_failure', (m) => { log('auth failure', m); process.exit(1); });
 client.on('disconnected', async (r) => { log('disconnected', r); try { await client.destroy(); } catch {} process.exit(1); }); // systemd restarts us
 process.on('SIGTERM', async () => { try { await client.destroy(); } catch {} process.exit(0); });
 client.on('ready', async () => {
-  log('ready; sending to', cfg.to);
+  log('ready; linked phone', client.info?.wid?.user, '; sending to', cfg.to);
+  try { log('recipient registered on WhatsApp:', await client.isRegisteredUser(cfg.to)); } catch (e) { log('registered check failed', e.message); }
+  client.on('message_ack', (m, ack) => { if (m.fromMe) log('ack', ack, 'for', m.body.split('\n')[0].slice(0, 40)); }); // 1 sent, 2 delivered, 3 read
+  const SEND_NOW = path.join(os.homedir(), '.config/greenroom-notify/send-now');
   if (process.argv.includes('--login')) { log('linked; session saved. Start the service now.'); await client.destroy(); process.exit(0); }
   const send = async (text) => { await client.sendMessage(cfg.to, text); log('sent:', text.split('\n')[0]); };
   if (process.argv.includes('--test')) { await send(summary()); await client.destroy(); process.exit(0); } // always destroy: an abrupt exit leaves the session unusable
@@ -92,6 +93,7 @@ client.on('ready', async () => {
   if (!Object.keys(state.seen).length) { for (const s of cfg.studios) prMessages(s); save(); log('primed', Object.keys(state.seen).length, 'existing PRs'); }
   setInterval(async () => {
     try {
+      if (fs.existsSync(SEND_NOW)) { fs.unlinkSync(SEND_NOW); await send(summary()); } // touch this file to get a summary now
       for (const s of cfg.studios) for (const m of prMessages(s)) await send(m);
       save();
       if (hhmm() === (cfg.dailyAt || '21:00') && state.lastSummary !== today()) { await send(summary()); state.lastSummary = today(); save(); }
