@@ -15,6 +15,8 @@ The story of building it, with the measurements and the two times the model got 
 3. The preview is your normal dev server, started in the worktree. greenroom passes it through its own address, so you publish one port and live reload still works.
 4. Send commits everything on a timestamped branch, pushes it, opens a PR with the request transcript and the file list, labels it with a tier (below), and resets the worktree to the base branch. Start over resets without sending.
 
+One collision to know about: the dev server and `npm run build` share Vite's dependency cache, so a build inside the playground breaks the running preview. For Astro, run the preview with a wrapper config that gives it its own cache (`vite.cacheDir`), which is what the setup plugin writes; for anything else, set `preview.clearCache` and greenroom restarts the preview with a clean cache after any turn that ran the build.
+
 Between messages, if nothing is waiting to be sent, the worktree fast-forwards to the base branch, reinstalls if the lockfile changed, and runs the commands in `sync.after`. I use that to load a snapshot of the production database, so the preview starts from what is actually live.
 
 The chips under the greeting ("Some things you could say") come from `ideas` in the config. Write them for the site in question: the kinds of change this person will actually ask for, in their words.
