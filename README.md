@@ -4,7 +4,7 @@ A chat page for someone who doesn't code, wired into your repo.
 
 They open it on their phone, type what they want changed on the site, watch it happen in a preview, and press Send. You get a pull request. Nothing goes live until you merge.
 
-I built it for my brother, who wanted to edit his own website and did not want to learn git. It is one Node file with no dependencies and runs on the machine that has the repo.
+I built it for someone who wanted to edit their own website and did not want to learn git. It is one Node file with no dependencies and runs on the machine that has the repo.
 
 ## What happens when they send a message
 
