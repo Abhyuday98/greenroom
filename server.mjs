@@ -229,8 +229,9 @@ const body = (req) => new Promise((resolve) => { let s = ''; req.on('data', (d) 
 const json = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(obj)); };
 const page = () => readText(path.join(here, 'index.html')).replaceAll('{{name}}', cfg.name);
 const isStudioPage = (req, url) => url.pathname === '/' && req.headers['sec-fetch-dest'] === 'document' && !url.searchParams.has('preview');
+const localHost = (h) => ({ ...h, host: `127.0.0.1:${cfg.preview.port}` }); // dev servers (Vite) refuse unknown Host names; they see their own
 function proxyPreview(req, res) {
-  const up = http.request({ host: '127.0.0.1', port: cfg.preview.port, method: req.method, path: req.url, headers: req.headers }, (r) => { res.writeHead(r.statusCode, r.headers); r.pipe(res); });
+  const up = http.request({ host: '127.0.0.1', port: cfg.preview.port, method: req.method, path: req.url, headers: localHost(req.headers) }, (r) => { res.writeHead(r.statusCode, r.headers); r.pipe(res); });
   up.on('error', () => { if (!res.headersSent) res.writeHead(502, { 'Content-Type': 'text/html; charset=utf-8' }); res.end('<!doctype html><meta name=viewport content="width=device-width"><body style="font:18px system-ui;padding:2rem">The preview is starting. Try again in a few seconds.'); });
   req.pipe(up);
 }
@@ -290,7 +291,7 @@ const server = http.createServer(async (req, res) => {
 server.on('upgrade', (req, socket, head) => { // websocket upgrades (the dev server's live reload) go straight through
   if (!who(req)) return socket.destroy();
   const up = net.connect(cfg.preview.port, '127.0.0.1', () => {
-    up.write([`${req.method} ${req.url} HTTP/1.1`, ...Object.entries(req.headers).map(([k, v]) => `${k}: ${v}`), '', ''].join('\r\n')); if (head.length) up.write(head);
+    up.write([`${req.method} ${req.url} HTTP/1.1`, ...Object.entries(localHost(req.headers)).map(([k, v]) => `${k}: ${v}`), '', ''].join('\r\n')); if (head.length) up.write(head);
     socket.pipe(up).pipe(socket);
   });
   up.on('error', () => socket.destroy()); socket.on('error', () => up.destroy());
