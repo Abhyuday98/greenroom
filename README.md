@@ -6,6 +6,8 @@ They open it on their phone, type what they want changed on the site, watch it h
 
 I built it for someone who is not technical. Their website runs on the free tier of Cloudflare, and greenroom runs on my machine, so they do not have to set anything up on their own computer or understand how any of it works. It is one Node file with no dependencies.
 
+The story of building it, with the measurements and the two times the model got creative: [I gave someone who doesn't code a chat window into my repo](https://medium.com/@abhyudaysamadder/i-gave-someone-who-doesnt-code-a-chat-window-into-my-repo-dad666162994).
+
 ## What happens when they send a message
 
 1. The message goes to `claude -p`, Claude Code in one-shot mode, running inside a git worktree of your repo on its own branch. That worktree is the sandbox: its own dependencies, its own local data, and a tool list that allows reading, editing, running the build and the tests, and nothing else. No commit, no push, no deploy, no network, no secrets.
