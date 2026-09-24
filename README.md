@@ -83,6 +83,8 @@ sudo tailscale serve --bg --https=8443 http://127.0.0.1:4400
 
 `example/greenroom.service` is a systemd user unit; enable linger so it survives logout. Add each person's login to `allowed.txt`, one per line. No restart needed.
 
+If you use Claude Code, the `greenroom` plugin in [Abhyuday98/skills](https://github.com/Abhyuday98/skills) does all of this for the repo you are in: `/greenroom:setup "Studio name" --owner You --allow you@github`. One clone serves every project on the machine; each repo gets its own `studio/` folder, playground, service and port.
+
 ## Keys
 
 greenroom itself has no account with anyone. Claude Code reads the key for the chosen brain from the service environment: `ANTHROPIC_API_KEY` for Claude models, `OPENROUTER_API_KEY` or `MOONSHOT_API_KEY` for the hosted open models, and none at all for a local Ollama model. Put them in the env file the service unit points at, not in the repo, and the bill for other people's changes lands on a key you can cap and rotate.
