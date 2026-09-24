@@ -14,7 +14,7 @@ The story of building it, with the measurements and the two times the model got 
 
 ## What happens when they send a message
 
-1. The message goes to `claude -p`, Claude Code in one-shot mode, running inside a git worktree of your repo on its own branch. That worktree is the sandbox: its own dependencies, its own local data, and a tool list that allows reading, editing, running the build and the tests, and nothing else. No commit, no push, no deploy, no network, no secrets.
+1. The message goes to `claude -p`, Claude Code in one-shot mode, running inside a git worktree of your repo on its own branch. That worktree is the sandbox: its own dependencies, its own local data, and a tool list that allows reading, editing, running the build and the tests, and nothing else. No commit, no push, no deploy, no network, no secrets. The one exception is deleting a photo it was sent: `rm` runs through a small hook (`rm-guard.mjs`) that allows a plain file name inside the upload folder and refuses flags, other paths, `..` and globs.
 2. Claude's events stream back to the page as short lines ("Changing the home page") and a reply. The session id is kept, so the next message continues the conversation.
 3. The preview is your normal dev server, started in the worktree. greenroom passes it through its own address, so you publish one port and live reload still works.
 4. Send commits everything on a timestamped branch, pushes it, opens a PR with the request transcript and the file list, labels it with a tier (below), and resets the worktree to the base branch. Start over resets without sending.
@@ -122,6 +122,7 @@ systemctl --user enable --now greenroom-notify   # from notify/greenroom-notify.
 
 ```
 server.mjs        the server
+rm-guard.mjs      the hook that limits rm to the upload folder
 index.html        the page
 PROMPT.md         system prompt for Claude ({name} and {owner} are filled in)
 PROMPT.bare.md    short prompt with a project map, for local and small models

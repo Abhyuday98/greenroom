@@ -127,7 +127,9 @@ function chat(text, person, res) {
     '--append-system-prompt', fillPrompt(readText(rel(p.bare ? cfg.barePrompt : cfg.prompt)) || readText(rel(cfg.prompt)), person) + facts(),
     '--allowedTools', ...cfg.claude.allowedTools, `Bash(rm ${cfg.upload.dir}/:*)`, '--disallowedTools', ...cfg.claude.disallowedTools]; // it may delete a photo it was sent; rm anywhere else is not allowed, so it is refused
   if (p.model) args.push('--model', p.model);
-  const env = { ...process.env, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1' };
+  const env = { ...process.env, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1', GREENROOM_UPLOAD_DIR: cfg.upload.dir };
+  // rm is allowed only through the guard hook: a plain file name inside the upload folder, nothing else (see rm-guard.mjs)
+  args.push('--settings', JSON.stringify({ hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node ${JSON.stringify(path.join(here, 'rm-guard.mjs'))}` }] }] } }));
   if (p.baseUrl) Object.assign(env, { ANTHROPIC_BASE_URL: p.baseUrl, ANTHROPIC_AUTH_TOKEN: p.token || 'none', ANTHROPIC_API_KEY: '', ANTHROPIC_SMALL_FAST_MODEL: p.model, ANTHROPIC_DEFAULT_HAIKU_MODEL: p.model });
   if (p.bare) args.push('--bare', '--tools', cfg.claude.bareTools); // small models drown in the full harness prompt
   if (state.session) args.push('--resume', state.session);
