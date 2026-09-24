@@ -10,7 +10,7 @@ The story of building it, with the measurements and the two times the model got 
 
 [![Four and a half minutes: what they see, then what happens underneath. Click to play.](docs/demo-poster.jpg)](docs/demo.mp4)
 
-*Four and a half minutes: what the person sees, then the same request from a terminal on my machine. Click the picture to play; subtitles are in [docs/demo.srt](docs/demo.srt).*
+*Four and a half minutes: what the person sees, then the same request from a terminal on my machine. Click the picture to play, or watch it [on Vimeo](https://vimeo.com/1229824513); subtitles are in [docs/demo.srt](docs/demo.srt).*
 
 ## What happens when they send a message
 
