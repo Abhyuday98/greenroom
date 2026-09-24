@@ -4,7 +4,7 @@ A chat page for someone who doesn't code, wired into your repo.
 
 They open it on their phone, type what they want changed on the site, watch it happen in a preview, and press Send. You get a pull request. Nothing goes live until you merge.
 
-I built it for someone who wanted to edit their own website and did not want to learn git. It is one Node file with no dependencies and runs on the machine that has the repo.
+I built it for someone who is not technical. Their website runs on the free tier of Cloudflare, and greenroom runs on my machine, so they do not have to set anything up on their own computer or understand how any of it works. It is one Node file with no dependencies.
 
 ## What happens when they send a message
 
