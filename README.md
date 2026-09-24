@@ -107,6 +107,17 @@ Every turn appends a line to `usage.jsonl`: who, session, provider, model, token
 curl -s -H 'Tailscale-User-Login: you@github' http://127.0.0.1:4400/api/usage | jq .byPerson
 ```
 
+## Being told
+
+`notify/` is a separate job that reads each studio's `decisions.jsonl` and `usage.jsonl` and sends WhatsApp messages through [whatsapp-web.js](https://wwebjs.dev): one when a pull request is sent, one when it is merged or closed, and one summary a day (service up, turns and estimated cost per person, PRs waiting). It links to a phone the way WhatsApp Web does: run it once in a terminal, scan the QR code, then run it as a service. Config is `~/.config/greenroom-notify.json`: the number to message, the hour, and a list of studios with their `studio/` folder and service name. greenroom itself knows nothing about it.
+
+```sh
+cd notify && npm install
+node whatsapp.mjs --dry      # prints what it would send
+node whatsapp.mjs --login    # scan the QR, then it exits
+systemctl --user enable --now greenroom-notify   # from notify/greenroom-notify.service
+```
+
 ## Files
 
 ```

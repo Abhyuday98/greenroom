@@ -1,0 +1,13 @@
+[Unit]
+Description=greenroom notify (WhatsApp: a message per PR, a summary a day)
+After=network-online.target
+
+[Service]
+WorkingDirectory=/home/you/greenroom/notify
+ExecStart=/usr/bin/node /home/you/greenroom/notify/whatsapp.mjs
+Environment=HOME=/home/you
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=default.target
