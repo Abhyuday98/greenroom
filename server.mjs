@@ -165,7 +165,7 @@ const describeTool = (c) => {
     case 'Edit': case 'MultiEdit': case 'Write': return `Changing ${f(c.input?.file_path)}`;
     case 'Read': return `Looking at ${f(c.input?.file_path)}`;
     case 'Glob': case 'Grep': case 'LS': return 'Looking around the site';
-    case 'Bash': return /build/.test(c.input?.command || '') ? 'Checking the site still builds' : 'Running a check';
+    case 'Bash': { const cmd = c.input?.command || ''; return /build/.test(cmd) ? 'Checking the site still builds' : /^\s*rm\b/.test(cmd) ? 'Removing a file' : 'Running a check'; }
     default: return 'Thinking about it';
   }
 };
