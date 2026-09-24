@@ -3,6 +3,13 @@
   "private": true,
   "type": "module",
   "description": "WhatsApp messages for greenroom studios: one per pull request, one summary a day.",
-  "scripts": { "start": "node whatsapp.mjs", "test": "node whatsapp.mjs --test" },
-  "dependencies": { "whatsapp-web.js": "^1.26.0", "qrcode-terminal": "^0.12.0" }
+  "scripts": {
+    "start": "node whatsapp.mjs",
+    "test": "node whatsapp.mjs --test"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.7"
+  }
 }

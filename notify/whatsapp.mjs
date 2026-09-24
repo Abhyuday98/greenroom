@@ -75,16 +75,19 @@ if (process.argv.includes('--dry')) { // no WhatsApp: print what would be sent
 const client = new Client({
   authStrategy: new LocalAuth({ dataPath: path.join(os.homedir(), '.config/greenroom-notify') }),
   puppeteer: { executablePath: cfg.chrome || '/usr/bin/google-chrome', headless: true, args: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'] },
+  // pin the WhatsApp Web build the library was tested against; a newer one reloads mid-injection ("Execution context was destroyed")
+  webVersionCache: { type: 'remote', remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1048347649-alpha.html' },
 });
-client.on('qr', (qr) => { console.log('\nScan this with WhatsApp > Linked devices > Link a device:\n'); qrcode.generate(qr, { small: true }); });
+client.on('qr', async (qr) => { console.log('\nScan this with WhatsApp > Linked devices > Link a device:\n'); qrcode.generate(qr, { small: true }); try { const QR = (await import('qrcode')).default; await QR.toFile(path.join(os.homedir(), '.config/greenroom-notify/qr.png'), qr, { width: 480 }); } catch {} });
 client.on('authenticated', () => log('authenticated'));
 client.on('auth_failure', (m) => { log('auth failure', m); process.exit(1); });
-client.on('disconnected', (r) => { log('disconnected', r); process.exit(1); }); // systemd restarts us
+client.on('disconnected', async (r) => { log('disconnected', r); try { await client.destroy(); } catch {} process.exit(1); }); // systemd restarts us
+process.on('SIGTERM', async () => { try { await client.destroy(); } catch {} process.exit(0); });
 client.on('ready', async () => {
   log('ready; sending to', cfg.to);
   if (process.argv.includes('--login')) { log('linked; session saved. Start the service now.'); await client.destroy(); process.exit(0); }
   const send = async (text) => { await client.sendMessage(cfg.to, text); log('sent:', text.split('\n')[0]); };
-  if (process.argv.includes('--test')) { await send(summary()); process.exit(0); }
+  if (process.argv.includes('--test')) { await send(summary()); await client.destroy(); process.exit(0); } // always destroy: an abrupt exit leaves the session unusable
   // first run: mark everything already in the files as seen, so we do not replay history
   if (!Object.keys(state.seen).length) { for (const s of cfg.studios) prMessages(s); save(); log('primed', Object.keys(state.seen).length, 'existing PRs'); }
   setInterval(async () => {
