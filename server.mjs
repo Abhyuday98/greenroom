@@ -23,7 +23,7 @@ const DEFAULTS = {
   claude: {
     command: 'claude',
     allowedTools: ['Read', 'Edit', 'Write', 'MultiEdit', 'Glob', 'Grep', 'LS', 'Bash(npm run build:*)', 'Bash(npm run build)', 'Bash(npm test:*)', 'Bash(npm test)', 'Bash(git status:*)', 'Bash(git diff:*)', 'Bash(git log:*)', 'Bash(ls:*)'],
-    disallowedTools: ['Bash(git push:*)', 'Bash(git commit:*)', 'Bash(git reset:*)', 'Bash(git checkout:*)', 'Bash(git clean:*)', 'Bash(rm:*)', 'Bash(sudo:*)', 'Bash(curl:*)', 'WebFetch', 'WebSearch', 'Agent', 'Task'],
+    disallowedTools: ['Bash(git push:*)', 'Bash(git commit:*)', 'Bash(git pull:*)', 'Bash(git fetch:*)', 'Bash(git merge:*)', 'Bash(git rebase:*)', 'Bash(git stash:*)', 'Bash(git reset:*)', 'Bash(git checkout:*)', 'Bash(git clean:*)', 'Bash(rm:*)', 'Bash(sudo:*)', 'Bash(curl:*)', 'WebFetch', 'WebSearch', 'Agent', 'Task'],
     bareTools: 'Read,Edit,Write,MultiEdit,Glob,Grep,LS,Bash',
   },
   prompt: 'PROMPT.md', barePrompt: 'PROMPT.bare.md',
@@ -120,10 +120,11 @@ function syncPlayground(force = false) {
 // ---------- one chat turn = one claude -p run ----------
 let busy = false;
 const fillPrompt = (t, person) => t.replaceAll('{name}', person.name).replaceAll('{owner}', cfg.owner);
+const facts = () => `\n\nFacts about this session: this copy of the site was refreshed from the live site ${lastSync ? Math.max(1, Math.round((Date.now() - lastSync) / 60000)) + ' minutes ago' : 'when it was set up'}; refreshing (pull, fetch, sync) is automatic and not something you can do or ask for. There is no permission prompt anywhere: a tool that is refused is simply unavailable, so never tell {name} to approve anything; say in one sentence what you cannot do.`.replaceAll('{name}', 'the person');
 function chat(text, person, res) {
   const p = provider();
   const args = ['-p', text, '--output-format', 'stream-json', '--verbose', '--permission-mode', 'acceptEdits',
-    '--append-system-prompt', fillPrompt(readText(rel(p.bare ? cfg.barePrompt : cfg.prompt)) || readText(rel(cfg.prompt)), person),
+    '--append-system-prompt', fillPrompt(readText(rel(p.bare ? cfg.barePrompt : cfg.prompt)) || readText(rel(cfg.prompt)), person) + facts(),
     '--allowedTools', ...cfg.claude.allowedTools, '--disallowedTools', ...cfg.claude.disallowedTools];
   if (p.model) args.push('--model', p.model);
   const env = { ...process.env, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1' };
@@ -160,7 +161,7 @@ const describeTool = (c) => {
     case 'Read': return `Looking at ${f(c.input?.file_path)}`;
     case 'Glob': case 'Grep': case 'LS': return 'Looking around the site';
     case 'Bash': return /build/.test(c.input?.command || '') ? 'Checking the site still builds' : 'Running a check';
-    default: return c.name;
+    default: return 'Thinking about it';
   }
 };
 
