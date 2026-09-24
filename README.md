@@ -93,6 +93,14 @@ If you use Claude Code, the `greenroom` plugin in [Abhyuday98/skills](https://gi
 
 greenroom itself has no account with anyone. Claude Code reads the key for the chosen brain from the service environment: `ANTHROPIC_API_KEY` for Claude models, `OPENROUTER_API_KEY` or `MOONSHOT_API_KEY` for the hosted open models, and none at all for a local Ollama model. Put them in the env file the service unit points at, not in the repo, and the bill for other people's changes lands on a key you can cap and rotate.
 
+## What it costs
+
+Every turn appends a line to `usage.jsonl`: who, session, provider, model, tokens in and out, cache reads and writes, seconds, and Claude Code's cost estimate at list price (an estimate, not the bill; on a subscription it is what the same turn would have cost on the API). `GET /api/usage` totals it per person and per session:
+
+```sh
+curl -s -H 'Tailscale-User-Login: you@github' http://127.0.0.1:4400/api/usage | jq .byPerson
+```
+
 ## Files
 
 ```
@@ -103,6 +111,6 @@ PROMPT.bare.md    short prompt with a project map, for local and small models
 example/          config, models, allow-list, model pick, systemd unit
 ```
 
-`state.json` and `decisions.jsonl` are written next to the config at runtime. Keep them out of git.
+`state.json`, `decisions.jsonl` and `usage.jsonl` are written next to the config at runtime. Keep them out of git.
 
 MIT.

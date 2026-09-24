@@ -31,7 +31,7 @@ const DEFAULTS = {
   tiers: { words: [], content: [], design: [] },
   policy: { autoMerge: false, autoMergeTiers: ['words'] },
   upload: { dir: 'public/img', maxWidth: 1600 },
-  files: { allowed: 'allowed.txt', model: 'model.txt', models: 'models.json', state: 'state.json', decisions: 'decisions.jsonl' },
+  files: { allowed: 'allowed.txt', model: 'model.txt', models: 'models.json', state: 'state.json', decisions: 'decisions.jsonl', usage: 'usage.jsonl' },
 };
 const cfg = (() => {
   let c = {}; try { c = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch (e) { console.error(`No config at ${CONFIG_FILE}: ${e.message}`); process.exit(1); }
@@ -147,7 +147,12 @@ function chat(text, person, res) {
         if (c.type === 'text' && c.text) { sawText = true; send({ type: 'text', text: c.text }); }
         if (c.type === 'tool_use') { send({ type: 'tool', text: describeTool(c) }); if (c.name === 'Bash' && /\bbuild\b/.test(c.input?.command || '')) ranBuild = true; }
       }
-      if (ev.type === 'result') { if (!sawText && ev.result) send({ type: 'text', text: ev.result }); send({ type: 'done', ok: !ev.is_error, turns: ev.num_turns }); }
+      if (ev.type === 'result') {
+        if (!sawText && ev.result) send({ type: 'text', text: ev.result });
+        send({ type: 'done', ok: !ev.is_error, turns: ev.num_turns });
+        const u = ev.usage || {}; // one line per turn: who spent what. Cost is Claude Code's estimate at list price, not the bill.
+        fs.appendFileSync(F.usage, JSON.stringify({ when: new Date().toISOString(), who: person.login, session: state.session, provider: p.key, model: p.model || 'default', turns: ev.num_turns, seconds: Math.round((ev.duration_ms || 0) / 1000), input: u.input_tokens || 0, output: u.output_tokens || 0, cacheRead: u.cache_read_input_tokens || 0, cacheWrite: u.cache_creation_input_tokens || 0, cost: ev.total_cost_usd || 0 }) + '\n');
+      }
     }
   });
   child.stderr.on('data', (d) => { err += d; });
@@ -252,6 +257,11 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/api/state') {
       const files = await changedFiles();
       return json(res, 200, { name: person.name, owner: cfg.owner, preview: cfg.preview.url, previewUp: await previewUp(), busy, session: !!state.session, files, tier: files.length ? tierOf(files) : null, log: state.log, provider: provider().key, model: provider().model || 'default', lastSync });
+    }
+    if (req.method === 'GET' && url.pathname === '/api/usage') { // totals per person and per session, from usage.jsonl
+      const rows = lines(F.usage).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      const sum = (key) => { const out = {}; for (const r of rows) { const k = r[key]; const o = out[k] ||= { turns: 0, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, seconds: 0, first: r.when, last: r.when, who: r.who }; o.turns++; for (const f of ['input', 'output', 'cacheRead', 'cacheWrite', 'cost', 'seconds']) o[f] += r[f] || 0; o.last = r.when; } return out; };
+      return json(res, 200, { byPerson: sum('who'), bySession: sum('session'), rows: rows.slice(-200) });
     }
     if (req.method === 'POST' && url.pathname === '/api/chat') {
       const { text } = await body(req);
