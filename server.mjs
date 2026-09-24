@@ -23,7 +23,7 @@ const DEFAULTS = {
   claude: {
     command: 'claude',
     allowedTools: ['Read', 'Edit', 'Write', 'MultiEdit', 'Glob', 'Grep', 'LS', 'Bash(npm run build:*)', 'Bash(npm run build)', 'Bash(npm test:*)', 'Bash(npm test)', 'Bash(git status:*)', 'Bash(git diff:*)', 'Bash(git log:*)', 'Bash(ls:*)'],
-    disallowedTools: ['Bash(git push:*)', 'Bash(git commit:*)', 'Bash(git pull:*)', 'Bash(git fetch:*)', 'Bash(git merge:*)', 'Bash(git rebase:*)', 'Bash(git stash:*)', 'Bash(git reset:*)', 'Bash(git checkout:*)', 'Bash(git clean:*)', 'Bash(rm:*)', 'Bash(sudo:*)', 'Bash(curl:*)', 'WebFetch', 'WebSearch', 'Agent', 'Task'],
+    disallowedTools: ['Bash(git push:*)', 'Bash(git commit:*)', 'Bash(git pull:*)', 'Bash(git fetch:*)', 'Bash(git merge:*)', 'Bash(git rebase:*)', 'Bash(git stash:*)', 'Bash(git reset:*)', 'Bash(git checkout:*)', 'Bash(git clean:*)', 'Bash(sudo:*)', 'Bash(curl:*)', 'WebFetch', 'WebSearch', 'Agent', 'Task'],
     bareTools: 'Read,Edit,Write,MultiEdit,Glob,Grep,LS,Bash',
   },
   prompt: 'PROMPT.md', barePrompt: 'PROMPT.bare.md',
@@ -125,7 +125,7 @@ function chat(text, person, res) {
   const p = provider();
   const args = ['-p', text, '--output-format', 'stream-json', '--verbose', '--permission-mode', 'acceptEdits',
     '--append-system-prompt', fillPrompt(readText(rel(p.bare ? cfg.barePrompt : cfg.prompt)) || readText(rel(cfg.prompt)), person) + facts(),
-    '--allowedTools', ...cfg.claude.allowedTools, '--disallowedTools', ...cfg.claude.disallowedTools];
+    '--allowedTools', ...cfg.claude.allowedTools, `Bash(rm ${cfg.upload.dir}/:*)`, '--disallowedTools', ...cfg.claude.disallowedTools]; // it may delete a photo it was sent; rm anywhere else is not allowed, so it is refused
   if (p.model) args.push('--model', p.model);
   const env = { ...process.env, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1' };
   if (p.baseUrl) Object.assign(env, { ANTHROPIC_BASE_URL: p.baseUrl, ANTHROPIC_AUTH_TOKEN: p.token || 'none', ANTHROPIC_API_KEY: '', ANTHROPIC_SMALL_FAST_MODEL: p.model, ANTHROPIC_DEFAULT_HAIKU_MODEL: p.model });
