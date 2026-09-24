@@ -134,7 +134,7 @@ function chat(text, person, res) {
   state.round.push(text); saveState();
   const child = spawn(cfg.claude.command, args, { cwd: PLAYGROUND, stdio: ['ignore', 'pipe', 'pipe'], env });
   const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`);
-  let buf = '', sawText = false, err = '';
+  let buf = '', sawText = false, err = '', ranBuild = false; // a build shares Vite's dep cache with the dev server and leaves it stale
   child.stdout.on('data', (d) => {
     buf += d;
     let i;
@@ -144,13 +144,13 @@ function chat(text, person, res) {
       if (ev.type === 'system' && ev.session_id) { state.session = ev.session_id; saveState(); }
       if (ev.type === 'assistant' && ev.message?.content) for (const c of ev.message.content) {
         if (c.type === 'text' && c.text) { sawText = true; send({ type: 'text', text: c.text }); }
-        if (c.type === 'tool_use') send({ type: 'tool', text: describeTool(c) });
+        if (c.type === 'tool_use') { send({ type: 'tool', text: describeTool(c) }); if (c.name === 'Bash' && /\bbuild\b/.test(c.input?.command || '')) ranBuild = true; }
       }
       if (ev.type === 'result') { if (!sawText && ev.result) send({ type: 'text', text: ev.result }); send({ type: 'done', ok: !ev.is_error, turns: ev.num_turns }); }
     }
   });
   child.stderr.on('data', (d) => { err += d; });
-  child.on('exit', (code) => { if (code !== 0) send({ type: 'error', text: `Something went wrong on my side (exit ${code}). ${err.trim().split('\n').slice(-2).join(' ').slice(0, 300)}` }); busy = false; res.end(); });
+  child.on('exit', (code) => { if (code !== 0) send({ type: 'error', text: `Something went wrong on my side (exit ${code}). ${err.trim().split('\n').slice(-2).join(' ').slice(0, 300)}` }); busy = false; res.end(); if (ranBuild && cfg.preview.clearCache) { log('build ran; restarting the preview with a clean cache'); restartPreview(); } });
   return child;
 }
 const describeTool = (c) => {
