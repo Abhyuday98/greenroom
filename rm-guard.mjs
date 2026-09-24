@@ -12,7 +12,9 @@ const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const NAME = '[A-Za-z0-9][A-Za-z0-9._-]*';
 const ALLOWED = new RegExp(`^rm( ${esc(DIR)}/${NAME})+$`);
 if (ALLOWED.test(cmd)) process.exit(0);
-if (/(^|[\s;&|(){}`$/\\])rm(\s|$)/.test(cmd)) {
+// look for rm as a word with quoting and escapes stripped, so "rm", 'rm', r\m and \rm count as rm too
+const bare = cmd.replace(/["'\\]/g, '');
+if (/(^|[\s;&|(){}`$/])rm(\s|$)/.test(bare)) { // over-blocks a harmless `grep rm`, which no allow rule covers anyway
   process.stderr.write(`rm is only allowed as: rm ${DIR}/<file name>. Not: ${cmd.slice(0, 80)}\n`);
   process.exit(2);
 }

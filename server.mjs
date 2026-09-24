@@ -125,7 +125,7 @@ function chat(text, person, res) {
   const p = provider();
   const args = ['-p', text, '--output-format', 'stream-json', '--verbose', '--permission-mode', 'acceptEdits',
     '--append-system-prompt', fillPrompt(readText(rel(p.bare ? cfg.barePrompt : cfg.prompt)) || readText(rel(cfg.prompt)), person) + facts(),
-    '--allowedTools', ...cfg.claude.allowedTools, `Bash(rm ${cfg.upload.dir}/:*)`, '--disallowedTools', ...cfg.claude.disallowedTools]; // it may delete a photo it was sent; rm anywhere else is not allowed, so it is refused
+    '--allowedTools', ...cfg.claude.allowedTools, ...(p.bare ? [] : [`Bash(rm ${cfg.upload.dir}/:*)`]), '--disallowedTools', ...cfg.claude.disallowedTools, ...(p.bare ? ['Bash(rm:*)'] : [])]; // photos it was sent may be deleted, gated by rm-guard.mjs; bare mode runs without hooks, so no rm there at all
   if (p.model) args.push('--model', p.model);
   const env = { ...process.env, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1', GREENROOM_UPLOAD_DIR: cfg.upload.dir };
   // rm is allowed only through the guard hook: a plain file name inside the upload folder, nothing else (see rm-guard.mjs)
