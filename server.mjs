@@ -27,6 +27,7 @@ const DEFAULTS = {
     bareTools: 'Read,Edit,Write,MultiEdit,Glob,Grep,LS,Bash',
   },
   prompt: 'PROMPT.md', barePrompt: 'PROMPT.bare.md',
+  ideas: ['Make the headline on the home page bigger', 'Change the accent colour to something warmer', 'Put this photo on the about page', 'Rewrite the introduction to sound warmer', 'Add a new page called…'],
   tiers: { words: [], content: [], design: [] },
   policy: { autoMerge: false, autoMergeTiers: ['words'] },
   upload: { dir: 'public/img', maxWidth: 1600 },
@@ -227,7 +228,8 @@ async function recordDecisions() {
 // ---------- http ----------
 const body = (req) => new Promise((resolve) => { let s = ''; req.on('data', (d) => { s += d; }); req.on('end', () => { try { resolve(JSON.parse(s || '{}')); } catch { resolve({}); } }); });
 const json = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(obj)); };
-const page = () => readText(path.join(here, 'index.html')).replaceAll('{{name}}', cfg.name);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const page = () => readText(path.join(here, 'index.html')).replaceAll('{{name}}', esc(cfg.name)).replace('{{ideas}}', cfg.ideas.map((t) => `<button type="button">${esc(t)}</button>`).join('\n        '));
 const isStudioPage = (req, url) => url.pathname === '/' && req.headers['sec-fetch-dest'] === 'document' && !url.searchParams.has('preview');
 const localHost = (h) => ({ ...h, host: `127.0.0.1:${cfg.preview.port}` }); // dev servers (Vite) refuse unknown Host names; they see their own
 function proxyPreview(req, res) {

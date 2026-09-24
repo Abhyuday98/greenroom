@@ -15,6 +15,8 @@ I built it for someone who is not technical. Their website runs on the free tier
 
 Between messages, if nothing is waiting to be sent, the worktree fast-forwards to the base branch, reinstalls if the lockfile changed, and runs the commands in `sync.after`. I use that to load a snapshot of the production database, so the preview starts from what is actually live.
 
+The chips under the greeting ("Some things you could say") come from `ideas` in the config. Write them for the site in question: the kinds of change this person will actually ask for, in their words.
+
 ## Who gets in
 
 Identity comes from whatever sits in front. Behind Tailscale Serve every request carries the visitor's Tailscale login as a header; behind Cloudflare Access it carries their verified email. greenroom checks that header against `allowed.txt` and that is the whole login system. There is no password, no session, no user table.
